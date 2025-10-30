@@ -1,0 +1,1 @@
+python -c "from email_service import test_send; test_send()"

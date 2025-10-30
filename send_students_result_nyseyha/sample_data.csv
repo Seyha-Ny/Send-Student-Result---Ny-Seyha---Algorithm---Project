@@ -1,0 +1,12 @@
+name,email,score,subject,batch
+John Doe,john.doe@example.com,85.5,Mathematics,2024-A
+Jane Smith,jane.smith@example.com,92.0,Mathematics,2024-A
+Michael Johnson,michael.j@example.com,78.5,Physics,2024-B
+Sarah Williams,sarah.w@example.com,88.0,Chemistry,2024-A
+David Brown,david.brown@example.com,95.5,Mathematics,2024-B
+Emily Davis,emily.davis@example.com,81.0,Physics,2024-A
+Robert Miller,robert.m@example.com,87.5,Chemistry,2024-B
+Lisa Anderson,lisa.a@example.com,90.0,Mathematics,2024-A
+James Taylor,james.t@example.com,76.5,Physics,2024-B
+Patricia Thomas,patricia.t@example.com,89.5,Chemistry,2024-A
+

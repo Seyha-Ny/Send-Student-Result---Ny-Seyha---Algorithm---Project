@@ -1,0 +1,818 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Student Results{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Upload Section -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-upload text-blue-600 mr-3"></i>Upload Student Results
+                </h2>
+                
+                <!-- File Upload Area -->
+                <div class="mb-6">
+                    <div id="dropZone" class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-blue-400 mb-4"></i>
+                        <p class="text-gray-700 font-semibold mb-2">Drag and drop your file here</p>
+                        <p class="text-gray-500 text-sm mb-4">or click to select a file</p>
+                        <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx,.xls">
+                        <p class="text-gray-400 text-xs">Supported formats: CSV, Excel (.xlsx, .xls)</p>
+                    </div>
+                </div>
+
+                <!-- File Info -->
+                <div id="fileInfo" class="hidden mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm text-gray-700 mb-2">
+                                <i class="fas fa-file text-blue-600 mr-2"></i>
+                                <span id="fileName"></span>
+                            </p>
+                            <p class="text-xs text-gray-600">
+                                <i class="fas fa-database mr-1"></i>
+                                Size: <span id="fileSize">0</span> KB
+                            </p>
+                        </div>
+                        <button type="button" id="clearFileBtn" class="text-red-600 hover:text-red-700 transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upload Progress -->
+                <div id="uploadProgress" class="hidden mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm font-semibold text-gray-700">Uploading...</p>
+                        <span id="progressPercent" class="text-sm text-gray-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Upload Button -->
+                <button id="uploadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fas fa-arrow-up mr-2"></i>Upload File
+                </button>
+
+                <!-- Uploaded Data Table -->
+                <div id="dataTableSection" class="mt-8 bg-white rounded-lg shadow-md p-6 hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">
+                            <i class="fas fa-table text-blue-600 mr-2"></i>Uploaded Data
+                        </h3>
+                        <button id="addStudentBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                            <i class="fas fa-plus mr-2"></i>Add Student
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse border border-gray-300">
+                            <thead>
+                                <tr class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                                    <th class="border border-gray-300 px-4 py-3 text-left text-sm font-semibold">ID</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left text-sm font-semibold">Name</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left text-sm font-semibold">Total</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left text-sm font-semibold">Comment</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center text-sm font-semibold">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody">
+                                <tr>
+                                    <td colspan="5" class="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                        No data uploaded yet. Upload a file to see data here.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-end gap-3">
+                        <button id="saveChangesBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                            <i class="fas fa-save mr-2"></i>Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div>
+            <!-- Email Configuration -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-envelope text-blue-600 mr-2"></i>Gmail Configuration
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Sender Email (Gmail)</label>
+                        <input type="email" id="senderEmail" placeholder="youremail@gmail.com" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Your Gmail address to send emails from</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">App Password</label>
+                        <input type="password" id="appPassword" placeholder="Enter Gmail App Password" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                        <p class="text-xs text-gray-500 mt-1">
+                            <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-blue-600 hover:underline">
+                                Generate App Password →
+                            </a>
+                        </p>
+                    </div>
+                    <button id="testEmailBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
+                        <i class="fas fa-check-circle mr-2"></i>Test Email Configuration
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-rocket text-purple-600 mr-2"></i>Quick Actions
+                </h3>
+                <div class="space-y-3">
+                    <button id="quickSendBtn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-paper-plane mr-2"></i>Send Results Now
+                    </button>
+                    <button onclick="window.location.href='/preview'" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
+                        <i class="fas fa-eye mr-2"></i>Preview Data
+                    </button>
+                    <button onclick="window.location.href='/logs'" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
+                        <i class="fas fa-history mr-2"></i>View Logs
+                    </button>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <div class="bg-white rounded-lg shadow-md p-6 sticky top-8">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>How It Works
+                </h3>
+                <ol class="space-y-4 text-sm text-gray-700">
+                    <li class="flex">
+                        <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mr-3">1</span>
+                        <span><strong>Configure</strong> your Gmail credentials above</span>
+                    </li>
+                    <li class="flex">
+                        <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mr-3">2</span>
+                        <span><strong>Upload</strong> your Excel (.xlsx) file with student data</span>
+                    </li>
+                    <li class="flex">
+                        <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mr-3">3</span>
+                        <span><strong>Click</strong> "Send Results Now" to email all students</span>
+                    </li>
+                    <li class="flex">
+                        <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mr-3">4</span>
+                        <span><strong>Monitor</strong> delivery status in real-time</span>
+                    </li>
+                </ol>
+
+                <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p class="text-xs text-green-800">
+                        <i class="fas fa-shield-alt text-green-600 mr-2"></i>
+                        <strong>Secure:</strong> Gmail App Passwords ensure safe email delivery
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div id="addStudentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div class="bg-gradient-to-r from-green-600 to-emerald-600 p-6 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-white">
+                <i class="fas fa-user-plus mr-2"></i>Add New Student
+            </h3>
+            <button id="closeAddStudentModal" class="text-white hover:text-gray-200 transition">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        <div class="p-6 overflow-auto max-h-[70vh]">
+            <form id="addStudentForm">
+                <!-- Personal Info -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Personal Information</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">First Name *</label>
+                            <input type="text" id="firstName" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
+                            <input type="text" id="lastName" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Student ID</label>
+                            <input type="text" id="studentId" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Class</label>
+                            <input type="text" id="studentClass" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
+                            <input type="email" id="studentEmail" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="student@example.com" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subjects and Scores -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2 flex justify-between items-center">
+                        <span>Subjects & Scores</span>
+                        <button type="button" id="addSubjectBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-3 rounded transition">
+                            <i class="fas fa-plus mr-1"></i>Add Subject
+                        </button>
+                    </h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse border border-gray-300">
+                            <thead>
+                                <tr id="subjectHeaderRow" class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                                    <!-- Subject headers will be added here dynamically -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="subjectScoreRow">
+                                    <!-- Subject scores will be added here dynamically -->
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Click "Add Subject" to add more subjects</p>
+                </div>
+
+                <!-- Total and Grade -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Results</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Total Score *</label>
+                            <input type="number" step="0.01" id="totalScore" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50" readonly>
+                            <p class="text-xs text-gray-500 mt-1">Auto-calculated from subjects</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Grade</label>
+                            <input type="text" id="grade" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50" readonly>
+                            <p class="text-xs text-gray-500 mt-1">Auto-calculated from total</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comment -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Comment</label>
+                    <textarea id="studentComment" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="bg-gray-50 p-4 flex justify-end gap-4 border-t">
+            <button id="cancelAddStudent" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                <i class="fas fa-times mr-2"></i>Cancel
+            </button>
+            <button id="saveNewStudent" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                <i class="fas fa-check mr-2"></i>Add Student
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const clearFileBtn = document.getElementById('clearFileBtn');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+
+    // Drag and drop
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-500', 'bg-blue-50');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+        fileInput.files = e.dataTransfer.files;
+        handleFileSelect();
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+    clearFileBtn.addEventListener('click', clearFile);
+
+    function handleFileSelect() {
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            fileName.textContent = file.name;
+            fileSize.textContent = (file.size / 1024).toFixed(2);
+            fileInfo.classList.remove('hidden');
+            uploadBtn.disabled = false;
+        }
+    }
+
+    function clearFile() {
+        fileInput.value = '';
+        fileInfo.classList.add('hidden');
+        uploadBtn.disabled = true;
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+        if (fileInput.files.length === 0) {
+            showToast('Please select a file', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...';
+
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(data.message, 'success');
+                // Display data in table for editing
+                displayDataTable(data.data);
+            } else {
+                showToast(data.message, 'error');
+            }
+        } catch (error) {
+            showToast('Error uploading file: ' + error.message, 'error');
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-arrow-up mr-2"></i>Upload File';
+        }
+    });
+
+    let currentStudentsData = [];
+    let subjectColumns = ['subject']; // Track subject columns
+
+    // Display data in editable table
+    function displayDataTable(studentsData) {
+        currentStudentsData = studentsData;
+        const dataTableSection = document.getElementById('dataTableSection');
+        const dataTableBody = document.getElementById('dataTableBody');
+        
+        dataTableSection.classList.remove('hidden');
+        
+        if (!studentsData || studentsData.length === 0) {
+            dataTableBody.innerHTML = '<tr><td colspan="5" class="border border-gray-300 px-4 py-8 text-center text-gray-500">No data to display</td></tr>';
+            return;
+        }
+        
+        dataTableBody.innerHTML = studentsData.map((student, index) => `
+            <tr class="hover:bg-blue-50">
+                <td class="border border-gray-300 px-4 py-3">
+                    <input type="text" value="${student.student_id || ''}" 
+                           class="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           data-index="${index}" data-field="student_id" placeholder="ID">
+                </td>
+                <td class="border border-gray-300 px-4 py-3">
+                    <input type="text" value="${student.name || ''}" 
+                           class="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           data-index="${index}" data-field="name" placeholder="Name" required>
+                </td>
+                <td class="border border-gray-300 px-4 py-3">
+                    <input type="number" step="0.01" value="${student.score || ''}" 
+                           class="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           data-index="${index}" data-field="score" placeholder="Total" required>
+                </td>
+                <td class="border border-gray-300 px-4 py-3">
+                    <input type="text" value="${student.comment || ''}" 
+                           class="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           data-index="${index}" data-field="comment" placeholder="Comment">
+                </td>
+                <td class="border border-gray-300 px-4 py-3 text-center">
+                    <button onclick="deleteStudent(${index})" class="text-red-600 hover:text-red-800 transition">
+                        <i class="fas fa-trash text-lg"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+        // Add event listeners to update data on change
+        document.querySelectorAll('#dataTableBody input').forEach(input => {
+            input.addEventListener('change', updateStudentData);
+        });
+    }
+
+    // Update student data when input changes
+    function updateStudentData(event) {
+        const index = parseInt(event.target.dataset.index);
+        const field = event.target.dataset.field;
+        const value = event.target.value;
+        
+        if (currentStudentsData[index]) {
+            currentStudentsData[index][field] = value;
+        }
+    }
+
+    // Add subject column (global function for onclick)
+    window.addSubjectColumn = function() {
+        const newSubjectField = `subject_${subjectColumns.length}`;
+        subjectColumns.push(newSubjectField);
+        
+        // Add the new field to all students
+        currentStudentsData.forEach(student => {
+            if (!student[newSubjectField]) {
+                student[newSubjectField] = '';
+            }
+        });
+        
+        displayDataTable(currentStudentsData);
+        showToast(`Subject column ${subjectColumns.length} added`, 'success');
+    };
+
+    // Delete student
+    window.deleteStudent = function(index) {
+        if (confirm('Are you sure you want to delete this student?')) {
+            currentStudentsData.splice(index, 1);
+            displayDataTable(currentStudentsData);
+            showToast('Student deleted', 'success');
+        }
+    };
+
+    // Modal elements
+    const addStudentModal = document.getElementById('addStudentModal');
+    const closeAddStudentModal = document.getElementById('closeAddStudentModal');
+    const cancelAddStudent = document.getElementById('cancelAddStudent');
+    const saveNewStudent = document.getElementById('saveNewStudent');
+    const addSubjectBtn = document.getElementById('addSubjectBtn');
+    const subjectsContainer = document.getElementById('subjectsContainer');
+
+    // Open modal when Add Student button is clicked
+    document.getElementById('addStudentBtn').addEventListener('click', () => {
+        addStudentModal.classList.remove('hidden');
+        resetAddStudentForm();
+    });
+
+    // Close modal
+    closeAddStudentModal.addEventListener('click', () => {
+        addStudentModal.classList.add('hidden');
+    });
+
+    cancelAddStudent.addEventListener('click', () => {
+        addStudentModal.classList.add('hidden');
+    });
+
+    let subjectCount = 0;
+
+    // Add subject column
+    addSubjectBtn.addEventListener('click', () => {
+        subjectCount++;
+        const subjectHeaderRow = document.getElementById('subjectHeaderRow');
+        const subjectScoreRow = document.getElementById('subjectScoreRow');
+        
+        // Add header cell
+        const headerCell = document.createElement('th');
+        headerCell.className = 'border border-gray-300 px-4 py-3 text-center';
+        headerCell.innerHTML = `
+            <div class="flex flex-col gap-2">
+                <input type="text" 
+                       class="subject-name w-full px-3 py-2 bg-white text-gray-800 border-0 rounded focus:outline-none focus:ring-2 focus:ring-white text-center font-semibold" 
+                       placeholder="Subject ${subjectCount}"
+                       data-subject-index="${subjectCount}"
+                       required>
+                <button type="button" onclick="removeSubject(${subjectCount})" class="text-white hover:text-red-200 text-xs">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+        `;
+        subjectHeaderRow.appendChild(headerCell);
+        
+        // Add score cell
+        const scoreCell = document.createElement('td');
+        scoreCell.className = 'border border-gray-300 px-4 py-3';
+        scoreCell.setAttribute('data-subject-index', subjectCount);
+        scoreCell.innerHTML = `
+            <input type="number" 
+                   step="0.01" 
+                   class="subject-score w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg font-semibold" 
+                   placeholder="0"
+                   data-subject-index="${subjectCount}"
+                   required>
+        `;
+        subjectScoreRow.appendChild(scoreCell);
+        
+        // Add event listener for auto-calculation
+        scoreCell.querySelector('.subject-score').addEventListener('input', calculateTotal);
+    });
+
+    // Remove subject column
+    window.removeSubject = function(index) {
+        const headerCells = document.querySelectorAll(`#subjectHeaderRow th`);
+        const scoreCells = document.querySelectorAll(`#subjectScoreRow td`);
+        
+        headerCells.forEach(cell => {
+            const input = cell.querySelector(`input[data-subject-index="${index}"]`);
+            if (input) {
+                cell.remove();
+            }
+        });
+        
+        scoreCells.forEach(cell => {
+            if (cell.getAttribute('data-subject-index') == index) {
+                cell.remove();
+            }
+        });
+        
+        calculateTotal();
+    };
+
+    // Calculate total and grade
+    function calculateTotal() {
+        const scores = Array.from(document.querySelectorAll('.subject-score')).map(input => parseFloat(input.value) || 0);
+        const total = scores.reduce((sum, score) => sum + score, 0);
+        const average = scores.length > 0 ? total / scores.length : 0;
+        
+        document.getElementById('totalScore').value = average.toFixed(2);
+        
+        // Calculate grade
+        let grade = '';
+        if (average >= 90) grade = 'A';
+        else if (average >= 80) grade = 'B';
+        else if (average >= 70) grade = 'C';
+        else if (average >= 60) grade = 'D';
+        else if (average >= 50) grade = 'E';
+        else grade = 'F';
+        
+        document.getElementById('grade').value = grade;
+    }
+
+    // Add event listeners to initial subject score inputs
+    document.querySelectorAll('.subject-score').forEach(input => {
+        input.addEventListener('input', calculateTotal);
+    });
+
+    // Reset form
+    function resetAddStudentForm() {
+        document.getElementById('addStudentForm').reset();
+        document.getElementById('totalScore').value = '';
+        document.getElementById('grade').value = '';
+        
+        // Clear subject table
+        document.getElementById('subjectHeaderRow').innerHTML = '';
+        document.getElementById('subjectScoreRow').innerHTML = '';
+        subjectCount = 0;
+    }
+
+    // Save new student
+    saveNewStudent.addEventListener('click', () => {
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const studentId = document.getElementById('studentId').value.trim();
+        const studentClass = document.getElementById('studentClass').value.trim();
+        const studentEmail = document.getElementById('studentEmail').value.trim();
+        const totalScore = parseFloat(document.getElementById('totalScore').value) || 0;
+        const grade = document.getElementById('grade').value.trim();
+        const comment = document.getElementById('studentComment').value.trim();
+
+        // Validate required fields
+        if (!firstName || !lastName) {
+            showToast('Please fill in First Name and Last Name', 'error');
+            return;
+        }
+
+        if (!studentEmail) {
+            showToast('Please fill in Email', 'error');
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(studentEmail)) {
+            showToast('Please enter a valid email address', 'error');
+            return;
+        }
+
+        // Get all subjects from table
+        const subjectNames = document.querySelectorAll('.subject-name');
+        const subjectScores = document.querySelectorAll('.subject-score');
+        const subjects = [];
+        let hasEmptySubject = false;
+
+        if (subjectNames.length === 0) {
+            showToast('Please add at least one subject', 'error');
+            return;
+        }
+
+        subjectNames.forEach((nameInput, index) => {
+            const subjectName = nameInput.value.trim();
+            const subjectScore = subjectScores[index] ? subjectScores[index].value.trim() : '';
+            
+            if (!subjectName || !subjectScore) {
+                hasEmptySubject = true;
+                return;
+            }
+            
+            subjects.push({
+                name: subjectName,
+                score: parseFloat(subjectScore)
+            });
+        });
+
+        if (hasEmptySubject) {
+            showToast('Please fill in all subject names and scores', 'error');
+            return;
+        }
+
+        // Create extra_data object with all subjects and additional info
+        const extraData = {
+            first_name: firstName,
+            last_name: lastName,
+            grade: grade,
+            comment: comment || ''
+        };
+        
+        // Add all subjects to extra_data
+        subjects.forEach((subj, idx) => {
+            extraData[`subject_${idx + 1}`] = subj.name;
+            extraData[`score_${idx + 1}`] = subj.score;
+        });
+
+        // Create new student object with all fields
+        const newStudent = {
+            student_id: studentId || '',
+            name: `${firstName} ${lastName}`,
+            email: studentEmail,
+            score: totalScore,
+            grade: grade,
+            batch: studentClass || '',
+            class: studentClass || '',
+            subject: subjects.length > 0 ? subjects[0].name : '',
+            subjects: subjects,
+            comment: comment || '',
+            extra_data: extraData  // Store all additional data for email template
+        };
+
+        console.log('New student data:', newStudent);  // Debug log
+        currentStudentsData.push(newStudent);
+        displayDataTable(currentStudentsData);
+        addStudentModal.classList.add('hidden');
+        showToast(`Student ${newStudent.name} added successfully!`, 'success');
+    });
+
+    // Save changes
+    document.getElementById('saveChangesBtn').addEventListener('click', async () => {
+        // Validate required fields
+        const hasEmptyRequired = currentStudentsData.some(s => !s.name || s.score === undefined || s.score === '');
+        if (hasEmptyRequired) {
+            showToast('Please fill in all required fields (Name and Total)', 'error');
+            return;
+        }
+        
+        console.log('Saving students data:', currentStudentsData);  // Debug log
+        await saveStudentsToDatabase(currentStudentsData);
+    });
+
+    async function saveStudentsToDatabase(studentsData) {
+        try {
+            const saveResponse = await fetch('/api/save-students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ students: studentsData })
+            });
+
+            const saveData = await saveResponse.json();
+            if (saveData.success) {
+                showToast('Data saved successfully! Redirecting to preview...', 'success');
+                setTimeout(() => {
+                    window.location.href = '/preview';
+                }, 1500);
+            } else {
+                showToast(saveData.message, 'error');
+            }
+        } catch (error) {
+            showToast('Error saving data: ' + error.message, 'error');
+        }
+    }
+
+    // Email configuration and quick send functionality
+    document.getElementById('testEmailBtn').addEventListener('click', async () => {
+        const senderEmail = document.getElementById('senderEmail').value;
+        const appPassword = document.getElementById('appPassword').value;
+
+        if (!senderEmail || !appPassword) {
+            showToast('Please enter both email and app password', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('testEmailBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Testing...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/test-email-config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: senderEmail,
+                    password: appPassword
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                showToast('Email configuration is valid!', 'success');
+                // Store credentials in localStorage for this session
+                localStorage.setItem('senderEmail', senderEmail);
+                localStorage.setItem('appPassword', appPassword);
+            } else {
+                showToast(data.message || 'Email configuration failed', 'error');
+            }
+        } catch (error) {
+            showToast('Error testing email configuration: ' + error.message, 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    document.getElementById('quickSendBtn').addEventListener('click', async () => {
+        const senderEmail = document.getElementById('senderEmail').value;
+        const appPassword = document.getElementById('appPassword').value;
+
+        if (!senderEmail || !appPassword) {
+            showToast('Please configure your Gmail credentials first', 'error');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to send results to all students? This action cannot be undone.')) {
+            return;
+        }
+
+        const btn = document.getElementById('quickSendBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending Emails...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/send-results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email_config: {
+                        email: senderEmail,
+                        password: appPassword
+                    }
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                showToast(`Successfully sent ${data.results.sent} emails! ${data.results.failed} failed.`, 'success');
+                setTimeout(() => {
+                    window.location.href = '/logs';
+                }, 2000);
+            } else {
+                showToast(data.message || 'Failed to send emails', 'error');
+            }
+        } catch (error) {
+            showToast('Error sending emails: ' + error.message, 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // Load saved email configuration
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedEmail = localStorage.getItem('senderEmail');
+        if (savedEmail) {
+            document.getElementById('senderEmail').value = savedEmail;
+        }
+    });
+</script>
+{% endblock %}
+

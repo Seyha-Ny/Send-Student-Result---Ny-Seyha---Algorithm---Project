@@ -1,0 +1,4 @@
+id,student_id,student_name,student_email,status,error_message,sent_at,created_at
+1,1,TIM TOLA,tola.tim@student.passerellesnumeriques.org,sent,,2025-10-28T02:38:46.409331,2025-10-28T02:38:42.874307
+2,2,LY SARL,ly.sarl@student.passerellesnumeriques.org,sent,,2025-10-28T02:38:49.040064,2025-10-28T02:38:46.504936
+3,3,PHAN PHOUN,phoun.phan@student.passerrellesnumeriques.org,sent,,2025-10-28T02:38:52.710859,2025-10-28T02:38:49.062923

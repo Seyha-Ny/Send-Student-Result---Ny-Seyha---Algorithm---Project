@@ -1,0 +1,12 @@
+student_id,name,email,score,subject,batch,comment
+1001,John Doe,john.doe@example.com,85.5,Mathematics,2024-A,Good progress
+1002,Jane Smith,jane.smith@example.com,92.0,Mathematics,2024-A,Excellent work
+1003,Michael Johnson,michael.j@example.com,78.5,Physics,2024-B,Needs improvement
+1004,Sarah Williams,sarah.w@example.com,88.0,Chemistry,2024-A,Very good
+1005,David Brown,david.brown@example.com,95.5,Mathematics,2024-B,Outstanding performance
+1006,Emily Davis,emily.davis@example.com,81.0,Physics,2024-A,Keep it up
+1007,Robert Miller,robert.m@example.com,87.5,Chemistry,2024-B,Well done
+1008,Lisa Anderson,lisa.a@example.com,90.0,Mathematics,2024-A,Great effort
+1009,James Taylor,james.t@example.com,76.5,Physics,2024-B,Practice more
+1010,Patricia Thomas,patricia.t@example.com,89.5,Chemistry,2024-A,Consistent performance
+

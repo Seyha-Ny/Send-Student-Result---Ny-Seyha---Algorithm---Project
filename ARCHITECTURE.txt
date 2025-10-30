@@ -1,0 +1,447 @@
+================================================================================
+    SEND STUDENT RESULT SYSTEM - ARCHITECTURE OVERVIEW
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          SYSTEM ARCHITECTURE                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                            FRONTEND LAYER                                    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
+│  │  Upload Page    │  │  Preview Page   │  │   Logs Page     │             │
+│  │  (index.html)   │  │ (preview.html)  │  │  (logs.html)    │             │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘             │
+│           │                    │                    │                       │
+│           └────────────────────┼────────────────────┘                       │
+│                                │                                            │
+│                    ┌───────────▼──────────┐                                │
+│                    │  Base Template       │                                │
+│                    │  (base.html)         │                                │
+│                    │  - Navigation        │                                │
+│                    │  - Styling           │                                │
+│                    │  - Notifications     │                                │
+│                    └───────────┬──────────┘                                │
+│                                │                                            │
+│                    ┌───────────▼──────────┐                                │
+│                    │  Tailwind CSS        │                                │
+│                    │  Font Awesome Icons  │                                │
+│                    │  JavaScript (Vanilla)│                                │
+│                    └──────────────────────┘                                │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ HTTP/AJAX
+                                    │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                            API LAYER (Flask)                                 │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                         routes.py                                    │  │
+│  │                                                                      │  │
+│  │  Frontend Routes:                                                   │  │
+│  │  ├─ GET  /                    → index.html                         │  │
+│  │  ├─ GET  /preview             → preview.html                       │  │
+│  │  └─ GET  /logs                → logs.html                          │  │
+│  │                                                                      │  │
+│  │  API Endpoints:                                                     │  │
+│  │  ├─ POST /api/upload          → File upload & validation           │  │
+│  │  ├─ POST /api/save-students   → Save to database                   │  │
+│  │  ├─ GET  /api/students        → Get all students                   │  │
+│  │  ├─ POST /api/send-results    → Send emails                        │  │
+│  │  ├─ GET  /api/email-logs      → Get logs                           │  │
+│  │  ├─ GET  /api/email-logs/export → Export CSV                       │  │
+│  │  └─ GET  /api/health          → Health check                       │  │
+│  │                                                                      │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                    │                                        │
+│                    ┌───────────────┼───────────────┐                       │
+│                    │               │               │                       │
+│           ┌────────▼────────┐  ┌──▼──────────┐  ┌─▼──────────────┐       │
+│           │   utils.py      │  │ models.py   │  │email_service.py│       │
+│           │                 │  │             │  │                │       │
+│           │ • File validate │  │ • Student   │  │ • Send email   │       │
+│           │ • CSV parsing   │  │ • EmailLog  │  │ • Template     │       │
+│           │ • Data validate │  │ • Relations │  │ • Error handle │       │
+│           │ • Sanitize      │  │ • Timestamps│  │ • Logging      │       │
+│           └─────────────────┘  └─────────────┘  └────────────────┘       │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Database Operations
+                                    │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          DATABASE LAYER                                      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                      SQLite Database                                 │  │
+│  │                  (student_results.db)                                │  │
+│  │                                                                      │  │
+│  │  ┌─────────────────────────┐    ┌──────────────────────────┐       │  │
+│  │  │   STUDENTS TABLE        │    │   EMAIL_LOGS TABLE       │       │  │
+│  │  ├─────────────────────────┤    ├──────────────────────────┤       │  │
+│  │  │ id (PK)                 │    │ id (PK)                  │       │  │
+│  │  │ name                    │    │ student_id (FK)          │       │  │
+│  │  │ email (UNIQUE)          │    │ status                   │       │  │
+│  │  │ score                   │    │ error_message            │       │  │
+│  │  │ subject                 │    │ sent_at                  │       │  │
+│  │  │ batch                   │    │ created_at               │       │  │
+│  │  │ created_at              │    │                          │       │  │
+│  │  │ updated_at              │    │ (Relationship to Student)│       │  │
+│  │  └─────────────────────────┘    └──────────────────────────┘       │  │
+│  │                                                                      │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ SMTP Connection
+                                    │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        EMAIL SERVICE LAYER                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                    email_service.py                                  │  │
+│  │                                                                      │  │
+│  │  ┌─────────────────────────────────────────────────────────────┐   │  │
+│  │  │  send_email_to_student(student)                             │   │  │
+│  │  │  ├─ Create email log entry                                  │   │  │
+│  │  │  ├─ Prepare email content                                   │   │  │
+│  │  │  ├─ Render HTML template                                    │   │  │
+│  │  │  ├─ Send via SMTP                                           │   │  │
+│  │  │  ├─ Update log status                                       │   │  │
+│  │  │  └─ Handle errors                                           │   │  │
+│  │  └─────────────────────────────────────────────────────────────┘   │  │
+│  │                                                                      │  │
+│  │  ┌─────────────────────────────────────────────────────────────┐   │  │
+│  │  │  send_student_results(students)                             │   │  │
+│  │  │  ├─ Iterate through students                                │   │  │
+│  │  │  ├─ Call send_email_to_student()                            │   │  │
+│  │  │  ├─ Track results                                           │   │  │
+│  │  │  └─ Return summary                                          │   │  │
+│  │  └─────────────────────────────────────────────────────────────┘   │  │
+│  │                                                                      │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ SMTP Protocol
+                                    │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                      EXTERNAL EMAIL PROVIDERS                                │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │    Gmail     │  │   Outlook    │  │  SendGrid    │  │   AWS SES    │  │
+│  │ smtp.gmail   │  │ smtp.office  │  │ smtp.sendgrid│  │ email-smtp   │  │
+│  │   .com:587   │  │  365.com:587 │  │   .net:587   │  │   .com:587   │  │
+│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘  │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                            DATA FLOW DIAGRAM
+================================================================================
+
+1. FILE UPLOAD FLOW:
+   ┌─────────────┐
+   │ User Upload │
+   └──────┬──────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Validate File    │ (CSV/Excel, size, format)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Parse Data       │ (Pandas)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Validate Data    │ (Required fields, email format)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Save to Database │ (SQLAlchemy)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Show Preview     │ (Display in table)
+   └──────────────────┘
+
+2. EMAIL SENDING FLOW:
+   ┌──────────────────┐
+   │ Select Students  │
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Confirm Action   │ (Dialog)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Create Log Entry │ (EmailLog)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Render Template  │ (HTML email)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Send via SMTP    │ (Flask-Mail)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Update Log       │ (Status: sent/failed)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Show Results     │ (Redirect to logs)
+   └──────────────────┘
+
+3. LOG VIEWING FLOW:
+   ┌──────────────────┐
+   │ View Logs Page   │
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Fetch from DB    │ (EmailLog table)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Display Table    │ (With status)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Filter/Search    │ (Real-time)
+   └──────┬───────────┘
+          │
+          ▼
+   ┌──────────────────┐
+   │ Export CSV       │ (Optional)
+   └──────────────────┘
+
+================================================================================
+                        COMPONENT INTERACTION
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  Frontend (HTML/CSS/JS)                                                    │
+│         │                                                                  │
+│         │ HTTP Requests                                                    │
+│         ▼                                                                  │
+│  Flask Routes (routes.py)                                                 │
+│         │                                                                  │
+│         ├─────────────────────────────────────────────────────────┐       │
+│         │                                                         │       │
+│         ▼                                                         ▼       │
+│  Utils (utils.py)                                    Email Service        │
+│  • File validation                                   (email_service.py)   │
+│  • Data parsing                                      • Template rendering │
+│  • Data validation                                   • SMTP sending       │
+│         │                                                         │       │
+│         └─────────────────────────────────────────────────────────┘       │
+│                                                                             │
+│                                    │                                       │
+│                                    ▼                                       │
+│                            Models (models.py)                              │
+│                            • Student                                       │
+│                            • EmailLog                                      │
+│                                    │                                       │
+│                                    ▼                                       │
+│                        SQLAlchemy ORM                                      │
+│                                    │                                       │
+│                                    ▼                                       │
+│                        SQLite Database                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                        DEPLOYMENT ARCHITECTURE
+================================================================================
+
+DEVELOPMENT:
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Local Machine                                                           │
+│  ├─ Python 3.8+                                                         │
+│  ├─ Flask Development Server (port 5000)                                │
+│  ├─ SQLite Database                                                     │
+│  └─ SMTP Connection (Gmail, Outlook, etc.)                              │
+└──────────────────────────────────────────────────────────────────────────┘
+
+PRODUCTION (Option 1 - On-Premises):
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Server                                                                  │
+│  ├─ Nginx (Reverse Proxy)                                               │
+│  ├─ Gunicorn (WSGI Server)                                              │
+│  ├─ Flask Application                                                   │
+│  ├─ PostgreSQL/MySQL Database                                           │
+│  └─ SMTP Connection                                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+
+PRODUCTION (Option 2 - Cloud):
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Cloud Platform (Heroku, AWS, etc.)                                     │
+│  ├─ Load Balancer                                                       │
+│  ├─ Application Instances (Gunicorn)                                    │
+│  ├─ Managed Database (PostgreSQL)                                       │
+│  ├─ CDN (Static Files)                                                  │
+│  └─ SMTP Service (SendGrid, AWS SES)                                    │
+└──────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                        TECHNOLOGY STACK
+================================================================================
+
+Frontend:
+  • HTML5
+  • CSS3 (Tailwind CSS)
+  • JavaScript (Vanilla)
+  • Font Awesome Icons
+
+Backend:
+  • Python 3.8+
+  • Flask 2.3.3
+  • Flask-SQLAlchemy 3.0.5
+  • Flask-Mail 0.9.1
+  • Werkzeug 2.3.7
+
+Database:
+  • SQLite (Development)
+  • PostgreSQL/MySQL (Production)
+
+Email:
+  • SMTP Protocol
+  • Flask-Mail
+  • Gmail/Outlook/SendGrid/AWS SES
+
+Data Processing:
+  • Pandas 2.0.3
+  • OpenPyXL 3.1.2
+
+Server:
+  • Gunicorn (WSGI)
+  • Nginx (Reverse Proxy)
+
+================================================================================
+                        SECURITY ARCHITECTURE
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  Input Validation Layer                                                    │
+│  ├─ File format validation                                                │
+│  ├─ File size validation                                                  │
+│  ├─ Email format validation                                               │
+│  └─ Data type validation                                                  │
+│                                                                             │
+│  Authentication Layer (Future)                                            │
+│  ├─ User login                                                            │
+│  ├─ Session management                                                    │
+│  └─ Role-based access                                                     │
+│                                                                             │
+│  Database Security Layer                                                  │
+│  ├─ SQLAlchemy ORM (SQL injection prevention)                             │
+│  ├─ Parameterized queries                                                 │
+│  └─ Database encryption (optional)                                        │
+│                                                                             │
+│  Email Security Layer                                                     │
+│  ├─ SMTP TLS/SSL                                                          │
+│  ├─ Secure credentials (environment variables)                            │
+│  └─ Error message sanitization                                            │
+│                                                                             │
+│  API Security Layer                                                       │
+│  ├─ CSRF protection (ready)                                               │
+│  ├─ Rate limiting (optional)                                              │
+│  └─ HTTPS/SSL (production)                                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                        SCALABILITY CONSIDERATIONS
+================================================================================
+
+Horizontal Scaling:
+  • Load balancer (AWS ELB, Nginx)
+  • Multiple application instances
+  • Shared database
+  • Shared file storage (S3, NFS)
+
+Vertical Scaling:
+  • Increase server resources (CPU, RAM)
+  • Optimize application code
+  • Use caching (Redis, Memcached)
+  • Optimize database queries
+
+Email Sending at Scale:
+  • Use task queue (Celery, RQ)
+  • Implement email batching
+  • Use email service provider (SendGrid, AWS SES)
+  • Monitor email delivery rates
+
+Database Optimization:
+  • Add indexes
+  • Archive old logs
+  • Use database replication
+  • Implement connection pooling
+
+================================================================================
+                        MONITORING & LOGGING
+================================================================================
+
+Application Monitoring:
+  • Response time
+  • Error rate
+  • Email delivery success rate
+  • Database query performance
+  • Server resource usage
+
+Tools:
+  • Prometheus (Metrics)
+  • Grafana (Visualization)
+  • ELK Stack (Logging)
+  • Sentry (Error tracking)
+  • New Relic (APM)
+
+Alerts:
+  • High error rate
+  • Slow response time
+  • Email sending failures
+  • Database connection issues
+  • Server resource exhaustion
+
+================================================================================
+                        BACKUP & DISASTER RECOVERY
+================================================================================
+
+Backup Strategy:
+  • Daily automated backups
+  • Multiple backup locations
+  • Regular backup testing
+  • Retention policy
+
+Disaster Recovery:
+  • RTO (Recovery Time Objective): < 1 hour
+  • RPO (Recovery Point Objective): < 1 day
+  • Documented recovery procedures
+  • Regular DR drills
+
+================================================================================
+

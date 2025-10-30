@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Help & Documentation{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            <i class="fas fa-question-circle text-blue-600 mr-3"></i>Help & Documentation
+        </h1>
+        <p class="text-gray-600">Everything you need to know about using the Student Results System</p>
+    </div>
+
+    <!-- Quick Start -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-600">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-rocket text-blue-600 mr-2"></i>Quick Start
+            </h2>
+            <ol class="space-y-3 text-sm text-gray-700">
+                <li class="flex">
+                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mr-3">1</span>
+                    <span>Prepare your CSV or Excel file with student data</span>
+                </li>
+                <li class="flex">
+                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mr-3">2</span>
+                    <span>Go to <strong>Upload</strong> and drag your file or click to select</span>
+                </li>
+                <li class="flex">
+                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mr-3">3</span>
+                    <span>Review data in <strong>Preview</strong> page</span>
+                </li>
+                <li class="flex">
+                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mr-3">4</span>
+                    <span>Click <strong>Send Results</strong> to email students</span>
+                </li>
+                <li class="flex">
+                    <span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-blue-600 text-white text-xs font-bold mr-3">5</span>
+                    <span>Check <strong>Logs</strong> to verify delivery</span>
+                </li>
+            </ol>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-600">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-file-csv text-green-600 mr-2"></i>File Format (EXACT columns required)
+            </h2>
+            <div class="space-y-3 text-sm text-gray-700">
+                <div class="bg-red-50 border border-red-200 rounded p-3 mb-3">
+                    <p class="font-bold text-red-700 mb-2">⚠️ IMPORTANT: Column names must be EXACT (lowercase):</p>
+                    <code class="bg-white px-3 py-2 rounded block text-sm">name,email,score,subject,batch</code>
+                </div>
+                <div>
+                    <p class="font-semibold text-green-700 mb-1">✓ Required Columns (MUST have):</p>
+                    <ul class="list-disc list-inside text-gray-600 ml-2">
+                        <li><code class="bg-gray-100 px-2 py-1 rounded">name</code> - Student name</li>
+                        <li><code class="bg-gray-100 px-2 py-1 rounded">email</code> - Student email</li>
+                        <li><code class="bg-gray-100 px-2 py-1 rounded">score</code> - Numeric score (0-100)</li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="font-semibold text-yellow-700 mb-1">★ Optional Columns:</p>
+                    <ul class="list-disc list-inside text-gray-600 ml-2">
+                        <li><code class="bg-gray-100 px-2 py-1 rounded">subject</code> - Subject name</li>
+                        <li><code class="bg-gray-100 px-2 py-1 rounded">batch</code> - Batch/Class info</li>
+                    </ul>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded p-3 mt-3">
+                    <p class="text-blue-800 text-xs">
+                        <i class="fas fa-download mr-1"></i>
+                        <strong>Sample file:</strong> <code>sample_students.csv</code> in your project folder
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8 border-l-4 border-red-500">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-tools text-red-500 mr-2"></i>Troubleshooting Email Sending
+        </h2>
+        <div class="space-y-4">
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>Gmail says authentication failed
+                </summary>
+                <div class="text-gray-600 mt-3 ml-6 text-sm space-y-2">
+                    <p>Use a Gmail App Password (not your normal password). Generate it here:</p>
+                    <p><a class="text-blue-600 underline" href="https://myaccount.google.com/apppasswords" target="_blank">myaccount.google.com/apppasswords</a></p>
+                    <ul class="list-disc list-inside">
+                        <li>Google Account must have 2‑Step Verification enabled</li>
+                        <li>Choose app: Mail, device: Other, then paste the 16‑char password</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>Getting error SMTP 534 or needs browser login
+                </summary>
+                <p class="text-gray-600 mt-3 ml-6 text-sm">This indicates Google blocked the sign‑in. Ensure you are using an App Password and that IMAP/SMTP access is allowed. Try the Test Email Configuration on the home page first.</p>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>Emails are delivered but go to Spam
+                </summary>
+                <div class="text-gray-600 mt-3 ml-6 text-sm space-y-2">
+                    <ul class="list-disc list-inside">
+                        <li>Ask recipients to mark as Not Spam</li>
+                        <li>Send from your own domain with proper SPF/DKIM if possible</li>
+                        <li>Avoid excessive links, ALL CAPS, or large attachments</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>Hit a sending limit or too many failures
+                </summary>
+                <div class="text-gray-600 mt-3 ml-6 text-sm space-y-2">
+                    <ul class="list-disc list-inside">
+                        <li>Gmail limits per‑day and per‑minute sends; try smaller batches</li>
+                        <li>Double‑check student emails for typos using the Preview</li>
+                        <li>Retry later if you see rate‑limit messages</li>
+                    </ul>
+                </div>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>How do I send using my own Gmail account as the sender?
+                </summary>
+                <p class="text-gray-600 mt-3 ml-6 text-sm">On the home page, enter your Gmail and App Password, click Test Email Configuration, then click Send Results Now. The app will send using your sender email for this request. Otherwise it uses the server default.</p>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>Can I receive a copy of all sent emails?
+                </summary>
+                <p class="text-gray-600 mt-3 ml-6 text-sm">If configured by the admin, the owner email will receive BCC copies automatically. Ask your admin to set <code>MAIL_OWNER_EMAIL</code> in the environment.</p>
+            </details>
+        </div>
+    </div>
+
+    <!-- FAQs -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-comments text-purple-600 mr-2"></i>Frequently Asked Questions
+        </h2>
+        
+        <div class="space-y-4">
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>What file formats are supported?
+                </summary>
+                <p class="text-gray-600 mt-3 ml-6">We support CSV (.csv) and Excel (.xlsx, .xls) files. Simply prepare your student data in any of these formats and upload.</p>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>Can I upload files with different column names?
+                </summary>
+                <p class="text-gray-600 mt-3 ml-6">Yes! If your file has different column names, the system will ask you to map them. For example, if you have "Student Name" instead of "name", you can map it during upload.</p>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>What happens to extra columns in my file?
+                </summary>
+                <p class="text-gray-600 mt-3 ml-6">Extra columns are automatically removed. Only the required columns (name, email, score) and optional columns (subject, batch) are kept.</p>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>Can I send emails to selected students only?
+                </summary>
+                <p class="text-gray-600 mt-3 ml-6">Yes! In the Preview page, you can select individual students using checkboxes and click "Send Selected" to email only those students.</p>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>How do I check if emails were sent successfully?
+                </summary>
+                <p class="text-gray-600 mt-3 ml-6">Go to the Logs page to see the status of all sent emails. You can filter by date, status, and search by student name or email.</p>
+            </details>
+
+            <details class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50">
+                <summary class="font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-plus text-blue-600 mr-2"></i>Is my data secure?
+                </summary>
+                <p class="text-gray-600 mt-3 ml-6">Yes! All data is processed securely and stored in an encrypted database. We never share your data with third parties.</p>
+            </details>
+        </div>
+    </div>
+
+    <!-- Tips & Tricks -->
+    <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg shadow-md p-6 border border-yellow-200">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-lightbulb text-yellow-600 mr-2"></i>Tips & Tricks
+        </h2>
+        <ul class="space-y-3 text-sm text-gray-700">
+            <li class="flex items-start">
+                <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+                <span><strong>Download Sample:</strong> Use the sample file to understand the correct format</span>
+            </li>
+            <li class="flex items-start">
+                <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+                <span><strong>Preview First:</strong> Always review data in the Preview page before sending</span>
+            </li>
+            <li class="flex items-start">
+                <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+                <span><strong>Search & Filter:</strong> Use search to find specific students quickly</span>
+            </li>
+            <li class="flex items-start">
+                <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+                <span><strong>Batch Operations:</strong> Select multiple students at once using checkboxes</span>
+            </li>
+            <li class="flex items-start">
+                <i class="fas fa-check text-green-600 mr-3 mt-1 flex-shrink-0"></i>
+                <span><strong>Export Logs:</strong> Export email logs as CSV for record keeping</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<style>
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+    details[open] summary i {
+        transform: rotate(45deg);
+    }
+</style>
+{% block scripts %}
+<script>
+    // Load FAQs from API and append below existing FAQs list (if needed in the future)
+    async function loadFaqs() {
+        try {
+            const res = await fetch('/api/help-faqs');
+            const data = await res.json();
+            // Currently FAQs are statically rendered above; you could use data.data to render dynamically if desired.
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    loadFaqs();
+</script>
+{% endblock %}
+{% endblock %}
+

@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Email Logs{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">
+            <i class="fas fa-history text-blue-600 mr-3"></i>Email Delivery Logs
+        </h2>
+        <p class="text-gray-600 mt-2">Track the status of all sent emails</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-envelope text-blue-600 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 text-sm">Total Emails</p>
+                    <p class="text-2xl font-bold text-gray-800" id="totalEmails">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-600 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 text-sm">Sent</p>
+                    <p class="text-2xl font-bold text-green-600" id="sentCount">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-times-circle text-red-600 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 text-sm">Failed</p>
+                    <p class="text-2xl font-bold text-red-600" id="failedCount">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-clock text-yellow-600 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 text-sm">Pending</p>
+                    <p class="text-2xl font-bold text-yellow-600" id="pendingCount">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex flex-col md:flex-row gap-4">
+            <input type="text" id="searchInput" placeholder="Search by name or email..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Status</option>
+                <option value="sent">Sent</option>
+                <option value="failed">Failed</option>
+                <option value="pending">Pending</option>
+            </select>
+            <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh
+            </button>
+            <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                <i class="fas fa-download mr-2"></i>Export CSV
+            </button>
+            <button id="clearDataBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                <i class="fas fa-trash-alt mr-2"></i>Clear Student Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-100 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Student Name</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Sent At</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Error Message</th>
+                    </tr>
+                </thead>
+                <tbody id="logsTable" class="divide-y">
+                    <tr class="text-center py-8">
+                        <td colspan="5" class="py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading logs...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="mt-6">
+        <a href="/preview" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Preview
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allLogs = [];
+
+    async function loadLogs() {
+        try {
+            const response = await fetch('/api/email-logs');
+            const data = await response.json();
+            
+            if (data.success) {
+                allLogs = data.data;
+                displayLogs(allLogs);
+                updateStats();
+            }
+        } catch (error) {
+            showToast('Error loading logs: ' + error.message, 'error');
+        }
+    }
+
+    function displayLogs(logs) {
+        const tbody = document.getElementById('logsTable');
+        
+        if (logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500">No logs found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = logs.map(log => {
+            const statusColor = log.status === 'sent' ? 'text-green-600' : log.status === 'failed' ? 'text-red-600' : 'text-yellow-600';
+            const statusBg = log.status === 'sent' ? 'bg-green-100' : log.status === 'failed' ? 'bg-red-100' : 'bg-yellow-100';
+            const statusIcon = log.status === 'sent' ? 'check-circle' : log.status === 'failed' ? 'times-circle' : 'clock';
+            
+            return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 text-sm text-gray-800">${log.student_name}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${log.student_email}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusBg} ${statusColor}">
+                            <i class="fas fa-${statusIcon} mr-1"></i>${log.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">
+                        ${log.sent_at ? new Date(log.sent_at).toLocaleString('en-US', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : '-'}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-red-600">
+                        ${log.error_message ? `<span title="${log.error_message}">${log.error_message.substring(0, 50)}...</span>` : '-'}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function updateStats() {
+        const sent = allLogs.filter(l => l.status === 'sent').length;
+        const failed = allLogs.filter(l => l.status === 'failed').length;
+        const pending = allLogs.filter(l => l.status === 'pending').length;
+
+        document.getElementById('totalEmails').textContent = allLogs.length;
+        document.getElementById('sentCount').textContent = sent;
+        document.getElementById('failedCount').textContent = failed;
+        document.getElementById('pendingCount').textContent = pending;
+    }
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = allLogs.filter(l => 
+            l.student_name.toLowerCase().includes(query) || 
+            l.student_email.toLowerCase().includes(query)
+        );
+        applyFilters(filtered);
+    });
+
+    // Status filter
+    document.getElementById('statusFilter').addEventListener('change', (e) => {
+        const status = e.target.value;
+        const filtered = status ? allLogs.filter(l => l.status === status) : allLogs;
+        applyFilters(filtered);
+    });
+
+    function applyFilters(logs) {
+        displayLogs(logs);
+    }
+
+    // Refresh button
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+        loadLogs();
+        showToast('Logs refreshed', 'success');
+    });
+
+    // Export button
+    document.getElementById('exportBtn').addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/email-logs/export');
+            const data = await response.json();
+            
+            if (data.success) {
+                showToast('Logs exported successfully', 'success');
+                // In a real app, you would download the file
+            } else {
+                showToast(data.message, 'error');
+            }
+        } catch (error) {
+            showToast('Error exporting logs: ' + error.message, 'error');
+        }
+    });
+
+    // Clear Student Data button
+    document.getElementById('clearDataBtn').addEventListener('click', async () => {
+        if (!confirm('⚠️ WARNING: This will permanently delete ALL student data and email logs!\n\nAre you absolutely sure you want to continue?')) {
+            return;
+        }
+
+        // Double confirmation for safety
+        if (!confirm('This action CANNOT be undone. Type "DELETE" in the next prompt to confirm.')) {
+            return;
+        }
+
+        const confirmation = prompt('Type "DELETE" (in uppercase) to confirm deletion:');
+        if (confirmation !== 'DELETE') {
+            showToast('Deletion cancelled - confirmation text did not match', 'info');
+            return;
+        }
+
+        const btn = document.getElementById('clearDataBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Clearing...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/clear-students', {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                showToast(data.message, 'success');
+                // Reload logs to show empty state
+                setTimeout(() => {
+                    loadLogs();
+                }, 1000);
+            } else {
+                showToast(data.message, 'error');
+            }
+        } catch (error) {
+            showToast('Error clearing data: ' + error.message, 'error');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // Load logs on page load
+    loadLogs();
+
+    // Auto-refresh every 30 seconds
+    setInterval(loadLogs, 30000);
+</script>
+{% endblock %}
+

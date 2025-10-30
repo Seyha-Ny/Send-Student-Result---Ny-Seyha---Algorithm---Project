@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+
+{% block title %}Preview Student Results{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">
+            <i class="fas fa-eye text-blue-600 mr-3"></i>Preview Student Data
+        </h2>
+        <p class="text-gray-600 mt-2">Review the data before sending emails to students</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-users text-blue-600 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 text-sm">Total Students</p>
+                    <p class="text-2xl font-bold text-gray-800" id="totalStudents">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-envelope text-green-600 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 text-sm">Valid Emails</p>
+                    <p class="text-2xl font-bold text-gray-800" id="validEmails">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-chart-bar text-purple-600 text-3xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-gray-600 text-sm">Average Score</p>
+                    <p class="text-2xl font-bold text-gray-800" id="avgScore">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sender Email Configuration (REQUIRED) -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 border-orange-500">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">
+            <i class="fas fa-envelope text-orange-600 mr-2"></i>Sender Email Configuration (Required)
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Your Gmail Address</label>
+                <input type="email" id="senderEmailPreview" placeholder="youremail@gmail.com" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Gmail App Password</label>
+                <input type="password" id="appPasswordPreview" placeholder="Enter App Password" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+            </div>
+        </div>
+        <p class="text-xs text-gray-600">
+            <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+            Results will be sent FROM your email address. 
+            <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-blue-600 hover:underline">Generate App Password →</a>
+        </p>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div class="md:col-span-2">
+                <input type="text" id="searchInput" placeholder="🔍 Search by name or email..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <select id="sortSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="name-asc">Sort: Name (A-Z)</option>
+                <option value="name-desc">Sort: Name (Z-A)</option>
+                <option value="score-asc">Sort: Score (Low to High)</option>
+                <option value="score-desc">Sort: Score (High to Low)</option>
+            </select>
+            <select id="filterSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Filter: All Students</option>
+                <option value="selected">Filter: Selected Only</option>
+            </select>
+        </div>
+        <div class="flex flex-col md:flex-row gap-4">
+            <button id="sendAllBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                <i class="fas fa-paper-plane mr-2"></i>Send All Results
+            </button>
+            <button id="exportBtn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                <i class="fas fa-download mr-2"></i>Export as CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                            <input type="checkbox" id="selectAll" class="rounded cursor-pointer">
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:text-blue-600" onclick="sortTable('name')">
+                            <i class="fas fa-sort text-gray-400 mr-2"></i>Name
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:text-blue-600" onclick="sortTable('email')">
+                            <i class="fas fa-sort text-gray-400 mr-2"></i>Email
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:text-blue-600" onclick="sortTable('score')">
+                            <i class="fas fa-sort text-gray-400 mr-2"></i>Score
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">ID</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Batch</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Comment</th>
+                        <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTable" class="divide-y">
+                    <tr class="text-center py-8">
+                        <td colspan="7" class="py-8 text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading students...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-6 flex gap-4">
+        <button id="sendSelectedBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition disabled:opacity-50" disabled>
+            <i class="fas fa-paper-plane mr-2"></i>Send Selected
+        </button>
+        <a href="/" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Upload
+        </a>
+    </div>
+</div>
+
+<!-- Send Confirmation Modal -->
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>Confirm Send
+        </h3>
+        <p class="text-gray-700 mb-6">
+            Are you sure you want to send results to <span id="confirmCount" class="font-bold">0</span> student(s)?
+        </p>
+        <div class="flex gap-4">
+            <button id="confirmSendBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                <i class="fas fa-check mr-2"></i>Yes, Send
+            </button>
+            <button id="cancelSendBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                <i class="fas fa-times mr-2"></i>Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allStudents = [];
+    let selectedStudents = new Set();
+
+    // Load students on page load
+    async function loadStudents() {
+        try {
+            const response = await fetch('/api/students');
+            const data = await response.json();
+            
+            if (data.success) {
+                allStudents = data.data;
+                displayStudents(allStudents);
+                updateStats();
+            }
+        } catch (error) {
+            showToast('Error loading students: ' + error.message, 'error');
+        }
+    }
+
+    function displayStudents(students) {
+        const tbody = document.getElementById('studentTable');
+
+        if (students.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-500"><i class="fas fa-inbox mr-2"></i>No students found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = students.map(student => `
+            <tr class="hover:bg-blue-50 transition">
+                <td class="px-6 py-4">
+                    <input type="checkbox" class="student-checkbox rounded cursor-pointer" data-id="${student.id}">
+                </td>
+                <td class="px-6 py-4 text-sm font-medium text-gray-800">${student.name}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">${student.email}</td>
+                <td class="px-6 py-4 text-sm">
+                    <input type="number" 
+                           step="0.01"
+                           class="w-20 px-3 py-1 rounded-full text-white font-semibold text-center ${student.score >= 80 ? 'bg-green-500' : student.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'} focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           value="${student.score}" 
+                           onblur="updateField(${student.id}, 'score', this.value)"
+                           onchange="updateScoreColor(this)">
+                </td>
+                <td class="px-6 py-4 text-sm">
+                    <input type="text" 
+                           class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" 
+                           placeholder="Enter ID..." 
+                           value="${student.student_id || ''}" 
+                           onblur="updateField(${student.id}, 'student_id', this.value)">
+                </td>
+                <td class="px-6 py-4 text-sm">
+                    <input type="text" 
+                           class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" 
+                           placeholder="Enter batch..." 
+                           value="${student.batch || ''}" 
+                           onblur="updateField(${student.id}, 'batch', this.value)">
+                </td>
+                <td class="px-6 py-4 text-sm">
+                    <input type="text" 
+                           class="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" 
+                           placeholder="Add comment..." 
+                           value="${student.comment || ''}" 
+                           onblur="updateField(${student.id}, 'comment', this.value)">
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <button class="text-blue-600 hover:text-blue-800 transition" onclick="sendToStudent(${student.id}, '${student.email}')">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        // Add event listeners to checkboxes
+        document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedCount);
+        });
+    }
+
+    function updateStats() {
+        document.getElementById('totalStudents').textContent = allStudents.length;
+        
+        const validEmails = allStudents.filter(s => s.email && s.email.includes('@')).length;
+        document.getElementById('validEmails').textContent = validEmails;
+        
+        const avgScore = allStudents.length > 0 
+            ? (allStudents.reduce((sum, s) => sum + s.score, 0) / allStudents.length).toFixed(2)
+            : 0;
+        document.getElementById('avgScore').textContent = avgScore;
+    }
+
+    function updateSelectedCount() {
+        selectedStudents.clear();
+        document.querySelectorAll('.student-checkbox:checked').forEach(checkbox => {
+            selectedStudents.add(parseInt(checkbox.dataset.id));
+        });
+        
+        document.getElementById('sendSelectedBtn').disabled = selectedStudents.size === 0;
+    }
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        applyFiltersAndSort();
+    });
+
+    // Sort functionality
+    document.getElementById('sortSelect').addEventListener('change', (e) => {
+        applyFiltersAndSort();
+    });
+
+    // Filter functionality
+    document.getElementById('filterSelect').addEventListener('change', (e) => {
+        applyFiltersAndSort();
+    });
+
+    function applyFiltersAndSort() {
+        let filtered = allStudents;
+
+        // Apply search filter
+        const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+        if (searchQuery) {
+            filtered = filtered.filter(s =>
+                s.name.toLowerCase().includes(searchQuery) ||
+                s.email.toLowerCase().includes(searchQuery)
+            );
+        }
+
+        // Apply selection filter
+        const filterType = document.getElementById('filterSelect').value;
+        if (filterType === 'selected') {
+            filtered = filtered.filter(s => selectedStudents.has(s.id));
+        }
+
+        // Apply sorting
+        const sortType = document.getElementById('sortSelect').value;
+        filtered = [...filtered].sort((a, b) => {
+            switch(sortType) {
+                case 'name-asc':
+                    return a.name.localeCompare(b.name);
+                case 'name-desc':
+                    return b.name.localeCompare(a.name);
+                case 'score-asc':
+                    return a.score - b.score;
+                case 'score-desc':
+                    return b.score - a.score;
+                default:
+                    return 0;
+            }
+        });
+
+        displayStudents(filtered);
+    }
+
+    // Export as CSV
+    document.getElementById('exportBtn').addEventListener('click', () => {
+        const csv = [
+            ['Name', 'Email', 'Score', 'Subject', 'Batch'],
+            ...allStudents.map(s => [s.name, s.email, s.score, s.subject || '', s.batch || ''])
+        ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `students_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showToast('CSV exported successfully!', 'success');
+    });
+
+    // Select all checkbox
+    document.getElementById('selectAll').addEventListener('change', (e) => {
+        document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+            checkbox.checked = e.target.checked;
+        });
+        updateSelectedCount();
+    });
+
+    // Send to individual student
+    function sendToStudent(studentId, email) {
+        selectedStudents.clear();
+        selectedStudents.add(studentId);
+        document.getElementById('confirmCount').textContent = 1;
+        document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    // Send buttons
+    document.getElementById('sendAllBtn').addEventListener('click', () => {
+        document.getElementById('confirmCount').textContent = allStudents.length;
+        document.getElementById('confirmModal').classList.remove('hidden');
+        selectedStudents.clear();
+        allStudents.forEach(s => selectedStudents.add(s.id));
+    });
+
+    document.getElementById('sendSelectedBtn').addEventListener('click', () => {
+        document.getElementById('confirmCount').textContent = selectedStudents.size;
+        document.getElementById('confirmModal').classList.remove('hidden');
+    });
+
+    document.getElementById('cancelSendBtn').addEventListener('click', () => {
+        document.getElementById('confirmModal').classList.add('hidden');
+    });
+
+    document.getElementById('confirmSendBtn').addEventListener('click', async () => {
+        // VALIDATE sender credentials first
+        const senderEmail = document.getElementById('senderEmailPreview').value.trim();
+        const appPassword = document.getElementById('appPasswordPreview').value.trim();
+        
+        if (!senderEmail || !appPassword) {
+            document.getElementById('confirmModal').classList.add('hidden');
+            showToast('Please enter your Gmail address and App Password before sending!', 'error');
+            return;
+        }
+        
+        document.getElementById('confirmModal').classList.add('hidden');
+        
+        const btn = document.getElementById('confirmSendBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+
+        try {
+            const response = await fetch('/api/send-results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    student_ids: Array.from(selectedStudents),
+                    email_config: {
+                        email: senderEmail,
+                        password: appPassword
+                    }
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(`Emails sent from ${senderEmail}: ${data.results.sent} successful, ${data.results.failed} failed`, 'success');
+                setTimeout(() => {
+                    window.location.href = '/logs';
+                }, 2000);
+            } else {
+                showToast(data.message, 'error');
+            }
+        } catch (error) {
+            showToast('Error sending results: ' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check mr-2"></i>Yes, Send';
+        }
+    });
+
+    // Update any field function
+    async function updateField(studentId, fieldName, value) {
+        try {
+            const response = await fetch(`/api/students/${studentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ [fieldName]: value })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                // Update the student in allStudents array
+                const studentIndex = allStudents.findIndex(s => s.id === studentId);
+                if (studentIndex !== -1) {
+                    allStudents[studentIndex][fieldName] = fieldName === 'score' ? parseFloat(value) : value;
+                }
+                showToast(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} updated successfully`, 'success');
+            } else {
+                showToast(`Failed to update ${fieldName}`, 'error');
+            }
+        } catch (error) {
+            showToast(`Error updating ${fieldName}: ` + error.message, 'error');
+        }
+    }
+    
+    // Update score color dynamically
+    function updateScoreColor(input) {
+        const score = parseFloat(input.value);
+        input.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-500');
+        if (score >= 80) {
+            input.classList.add('bg-green-500');
+        } else if (score >= 60) {
+            input.classList.add('bg-yellow-500');
+        } else {
+            input.classList.add('bg-red-500');
+        }
+    }
+
+    // Load students on page load
+    loadStudents();
+    
+    // Load saved sender credentials from localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedEmail = localStorage.getItem('senderEmail');
+        if (savedEmail) {
+            document.getElementById('senderEmailPreview').value = savedEmail;
+        }
+    });
+</script>
+{% endblock %}
+
