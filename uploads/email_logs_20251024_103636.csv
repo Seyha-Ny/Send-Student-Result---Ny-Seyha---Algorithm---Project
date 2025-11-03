@@ -1,3 +1,0 @@
-id,student_id,student_name,student_email,status,error_message,sent_at,created_at
-1,1,phan phoun,phuon.phan@student.passerellesnumeriques.org,failed,[Errno 22] Invalid argument,,2025-10-24T03:35:30.393288
-2,2,Samart Luchseyha.ny@student.passerellesnumeriques.org,samart.luch@student.passerellesnumeriques.org,failed,[Errno 22] Invalid argument,,2025-10-24T03:35:30.936931
