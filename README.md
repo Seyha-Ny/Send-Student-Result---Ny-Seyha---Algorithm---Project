@@ -4,36 +4,53 @@ A modern web application that automatically sends student results via email usin
 
 ## ✨ Key Features
 
-### 📊 **Excel File Upload (.xlsx)**
-- Drag & drop Excel file upload
-- Automatic column mapping for missing fields
-- Support for required columns: `name`, `email`, `score`
-- Optional columns: `subject`, `batch`
+### 📊 **Smart File Upload (.xlsx, .csv)**
+- Drag & drop Excel/CSV file upload
+- **Intelligent column detection** - automatically handles any file structure
+- **Only email column required** - all other fields are optional
+- **Dynamic extra fields** - automatically stores and displays any additional columns
+- Handles files with/without headers
+- Auto-maps common column variations (firstname/lastname → name, total → score, etc.)
 - Real-time data validation
 
 ### 📧 **Gmail Integration** 
 - Easy Gmail configuration with App Passwords
 - Test email settings before sending
 - Secure SMTP connection via Gmail
-- Professional HTML email templates with emojis
+- **Sender uses their own Gmail credentials** for sending
+- Optional BCC to owner email for monitoring
 
 ### 🚀 **One-Click Send**
 - **"Send Results Now"** button for instant delivery
-- Send to all students simultaneously
+- Send to all students or selected students
 - Real-time progress tracking
 - Automatic error handling and retry logic
 
-### 📈 **Modern Email Templates**
-- Beautiful, responsive email design
+### 📈 **Beautiful Email Templates**
+- Modern gradient design with responsive layout
+- **Dynamic table generation** - displays all student data fields
 - Color-coded scores (Green: 80+, Orange: 60-79, Red: <60)
-- Personalized messages based on performance
+- Personalized encouragement messages based on performance
+- Displays subjects with scores, grades, comments, and custom fields
 - Mobile-friendly email layout
+
+### 💬 **Comment System**
+- Add/edit comments for individual students
+- Comments automatically included in emails
+- Inline editing in preview table
+
+### 🔗 **Result Sharing**
+- Generate secure shareable links for student results
+- Set expiration dates for shared links
+- Track view counts and access history
+- Deactivate links anytime
 
 ### 📋 **Comprehensive Logging**
 - Track email delivery status (sent, failed, pending)
 - View detailed error messages
 - Export logs as CSV
 - Real-time status updates
+- Bangkok timezone support
 
 ## 🛠️ Technology Stack
 
@@ -76,15 +93,15 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment Variables
+### 4. Configure Environment Variables (Optional)
 
-Create a `.env` file in the project root directory:
+Create a `.env` file in the project root directory for advanced configuration:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and add your email configuration:
+Edit `.env` and add your configuration:
 
 ```env
 # Flask Configuration
@@ -94,14 +111,17 @@ FLASK_DEBUG=True
 # Database Configuration
 DATABASE_URL=sqlite:///student_results.db
 
-# Email Configuration (Gmail example)
+# Email Configuration (Optional - can be set via UI)
 MAIL_SERVER=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USE_TLS=True
 MAIL_USERNAME=your_email@gmail.com
 MAIL_PASSWORD=your_app_password
-MAIL_DEFAULT_SENDER=noreply@studentresults.com
+MAIL_DEFAULT_SENDER=your_email@gmail.com
+MAIL_OWNER_EMAIL=admin@example.com  # Optional: Receive BCC of all emails
 ```
+
+**Note:** Email credentials can be entered directly in the web interface, so `.env` configuration is optional.
 
 ### 5. Email Configuration Guide
 
@@ -128,61 +148,92 @@ MAIL_USERNAME=apikey
 MAIL_PASSWORD=your_sendgrid_api_key
 ```
 
-### 6. Initialize Database
+### 6. Run the Application
+
+**Option A: Quick Start (Recommended)**
 
 ```bash
-python
->>> from app import app, db
->>> with app.app_context():
-...     db.create_all()
->>> exit()
+# Windows
+quickstart.bat
+
+# macOS/Linux
+./quickstart.sh
 ```
 
-### 7. Run the Application
+**Option B: Manual Start**
 
 ```bash
 python app.py
 ```
 
+The database will be created automatically on first run.
+
 The application will be available at: **http://localhost:5000**
 
 ## 📖 Usage Guide
 
-### Step 1: Configure Gmail (One-time setup)
+### Step 1: Upload Student Data (.xlsx or .csv file)
 
 1. Navigate to the home page
-2. In the **Gmail Configuration** section:
+2. In the **Upload Student Results** section:
+   - Drag & drop your Excel/CSV file or click to browse
+   - **Only required column: `email`** (all other fields are optional)
+   - The system automatically handles any additional columns
+   - Supports files with or without headers
+3. Click **"Upload File"** button
+4. Preview the uploaded data in the table
+5. Click **"Save to Database"** to store the data
+
+**Supported File Formats:**
+- Any column structure (only email is required)
+- Automatically detects: name, score, student_id, subject, batch, comment
+- All extra columns are preserved and displayed in emails
+- Auto-maps variations: firstname+lastname→name, total→score, class→batch
+
+### Step 2: Review and Edit (Optional)
+
+1. View all students in the preview table
+2. Click on any student row to edit their information
+3. Add or modify comments for individual students
+4. Comments will be included in the email
+
+### Step 3: Configure Gmail and Send
+
+1. In the **Gmail Configuration** section:
    - Enter your Gmail address (e.g., `youremail@gmail.com`)
    - Enter your Gmail App Password (generate at https://myaccount.google.com/apppasswords)
-3. Click **"Test Email Configuration"** to verify settings
-4. ✅ You should see "Email configuration is valid!" message
-
-### Step 2: Upload Student Data (.xlsx Excel file)
-
-1. In the **Upload Student Results** section:
-   - Drag & drop your Excel file or click to browse
-   - Required columns: `name`, `email`, `score`
-   - Optional columns: `subject`, `batch`
-2. Click **"Upload File"** button
-3. The system will validate and save the data automatically
-
-### Step 3: Send Results (One-Click!)
-
-1. Click the big **"Send Results Now"** button
-2. Confirm the action in the popup dialog
-3. ✅ All students receive personalized emails automatically!
-4. View real-time progress and delivery status
+2. Click **"Test Email Configuration"** to verify settings
+3. ✅ You should see "Email configuration is valid!" message
+4. Click the big **"Send Results Now"** button
+5. Confirm the action in the popup dialog
+6. ✅ All students receive personalized emails from your Gmail!
 
 ### Step 4: Monitor Results
 
-1. Click **"View Logs"** to see delivery status
+1. Click **"View Logs"** in the navigation to see delivery status
 2. Check sent/failed email counts
 3. Export logs as CSV for record keeping
 4. Review any error messages for failed deliveries
 
+### Step 5: Share Results (Optional)
+
+1. Select students to share
+2. Click **"Share Results"** button
+3. Enter recipient email and expiration date
+4. Generate secure shareable link
+5. Send link to authorized viewers
+
 ## 📁 File Format
 
-### CSV Format Example
+### Minimal Format (Only Email Required)
+
+```csv
+email
+john@example.com
+jane@example.com
+```
+
+### Standard Format Example
 
 ```csv
 name,email,score,subject,batch
@@ -190,44 +241,78 @@ John Doe,john@example.com,85.5,Mathematics,2024-A
 Jane Smith,jane@example.com,92.0,Physics,2024-B
 ```
 
-### Excel Format
-- Same columns as CSV
-- Supported formats: .xlsx, .xls
+### Extended Format with Custom Fields
+
+```csv
+first_name,last_name,email,subject_1,score_1,subject_2,score_2,total,grade,comment
+John,Doe,john@example.com,Math,85,Science,90,175,A,Excellent work!
+Jane,Smith,jane@example.com,Math,92,Science,88,180,A+,Outstanding!
+```
+
+**Key Points:**
+- **Only `email` column is required**
+- All other columns are optional and flexible
+- System automatically handles any additional columns
+- Extra columns are stored and displayed in emails
+- Supported formats: .xlsx, .xls, .csv
+- Files can have headers or no headers (auto-detected)
 
 ## 🗂️ Project Structure
 
 ```
 send_students_result_nyseyha/
-├── app.py                 # Main Flask application
-├── models.py              # Database models
+├── app.py                 # Main Flask application with app factory
+├── models.py              # Database models (Student, EmailLog, SharedResult)
 ├── routes.py              # API routes and endpoints
-├── email_service.py       # Email sending logic
+├── email_service.py       # Email sending logic with dynamic templates
+├── extensions.py          # Flask extensions (SQLAlchemy, Flask-Mail)
 ├── utils.py               # Utility functions
 ├── requirements.txt       # Python dependencies
 ├── .env.example           # Environment variables template
-├── sample_data.csv        # Sample student data
+├── sample_students.csv    # Sample student data
+├── quickstart.bat         # Windows quick start script
+├── quickstart.sh          # Unix/Linux quick start script
 ├── README.md              # This file
 ├── templates/
-│   ├── base.html          # Base template
-│   ├── index.html         # Upload page
-│   ├── preview.html       # Preview page
-│   └── logs.html          # Logs page
-└── uploads/               # Uploaded files directory
+│   ├── base.html          # Base template with navigation
+│   ├── index.html         # Upload and send page
+│   ├── preview.html       # Preview and edit students
+│   ├── logs.html          # Email logs page
+│   ├── help.html          # Help and FAQ page
+│   └── shared_results.html # Shared results view
+├── uploads/               # Uploaded files directory
+└── instance/              # SQLite database location
+    └── student_results.db # SQLite database file
 ```
 
 ## 🔌 API Endpoints
 
-### File Upload
-- **POST** `/api/upload` - Upload and process student file
+### File Upload & Processing
+- **POST** `/api/upload` - Upload and process student file (CSV/Excel)
+- **POST** `/api/map-columns` - Manual column mapping for files with missing fields
 - **POST** `/api/save-students` - Save students to database
+- **GET** `/api/download-sample` - Download sample CSV template
 
 ### Student Management
 - **GET** `/api/students` - Get all students
-- **POST** `/api/send-results` - Send results to students
+- **PUT** `/api/students/<id>` - Update student information
+- **PUT** `/api/students/<id>/comment` - Update student comment
+- **DELETE** `/api/clear-students` - Clear all students and logs
 
-### Email Logs
+### Email Operations
+- **POST** `/api/send-results` - Send results to students with email config
+- **POST** `/api/test-email-config` - Test email configuration
 - **GET** `/api/email-logs` - Get all email logs
 - **GET** `/api/email-logs/export` - Export logs as CSV
+
+### Sharing
+- **POST** `/api/share/create` - Create shareable link
+- **GET** `/api/share/<token>` - Get shared results
+- **POST** `/api/share/<token>/deactivate` - Deactivate share link
+- **GET** `/api/shares` - Get all active shares
+
+### Help & Support
+- **GET** `/api/help-faqs` - Get FAQ list
 
 ### Health Check
 - **GET** `/api/health` - Health check endpoint
@@ -269,11 +354,14 @@ send_students_result_nyseyha/
 ```sql
 CREATE TABLE students (
     id INTEGER PRIMARY KEY,
+    student_id VARCHAR(50),           -- Optional student ID
     name VARCHAR(120) NOT NULL,
     email VARCHAR(120) NOT NULL UNIQUE,
     score FLOAT NOT NULL,
     subject VARCHAR(120),
     batch VARCHAR(50),
+    comment TEXT,                     -- Teacher comments
+    extra_data JSON,                  -- Dynamic fields from uploaded file
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -284,7 +372,7 @@ CREATE TABLE students (
 CREATE TABLE email_logs (
     id INTEGER PRIMARY KEY,
     student_id INTEGER NOT NULL,
-    status VARCHAR(20) DEFAULT 'pending',
+    status VARCHAR(20) DEFAULT 'pending',  -- 'pending', 'sent', 'failed'
     error_message TEXT,
     sent_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -292,18 +380,51 @@ CREATE TABLE email_logs (
 );
 ```
 
+### Shared Results Table
+```sql
+CREATE TABLE shared_results (
+    id INTEGER PRIMARY KEY,
+    student_id INTEGER NOT NULL,
+    share_token VARCHAR(100) UNIQUE NOT NULL,
+    shared_with_email VARCHAR(120) NOT NULL,
+    shared_by VARCHAR(120),
+    expires_at DATETIME,
+    is_active BOOLEAN DEFAULT TRUE,
+    view_count INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_viewed_at DATETIME,
+    FOREIGN KEY (student_id) REFERENCES students(id)
+);
+```
+
 ## 🎨 Customization
 
 ### Change Email Template
-Edit the `send_email_to_student()` function in `email_service.py` to customize the email HTML template.
+Edit the `send_email_to_student()` function in `email_service.py` to customize:
+- Email subject line
+- HTML layout and styling
+- Color schemes for score ranges
+- Encouragement messages
+- Table formatting
 
 ### Modify UI Colors
-Edit the Tailwind CSS classes in template files to change colors and styling.
+Edit the Tailwind CSS classes in template files (`templates/*.html`) to change:
+- Navigation bar colors
+- Button styles
+- Card backgrounds
+- Text colors
 
 ### Add Custom Fields
-1. Update the Student model in `models.py`
-2. Update the CSV parsing in `routes.py`
-3. Update the HTML templates
+No code changes needed! The system automatically:
+- Detects and stores any extra columns from uploaded files
+- Displays them in the email template
+- Preserves column order from the original file
+
+### Change Timezone
+Edit `BANGKOK_TZ` in `models.py` and `email_service.py` to use a different timezone:
+```python
+BANGKOK_TZ = pytz.timezone('Asia/Bangkok')  # Change to your timezone
+```
 
 ## 📝 License
 
@@ -327,7 +448,9 @@ This project demonstrates:
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: 2024  
-**Status**: Production Ready
+**Version**: 2.0.0  
+**Last Updated**: November 2024  
+**Status**: Production Ready  
+**Author**: Ny Seyha  
+**License**: Open Source
 
